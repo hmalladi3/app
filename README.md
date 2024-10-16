@@ -7,3 +7,4 @@ DATABASE
 FEATURES
 - verify acct
 - flag user
+- recurring payments
