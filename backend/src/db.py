@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional, Callable
+from typing import List, Dict, Any, Optional, Callable, Generator
 from uuid import UUID
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -30,7 +30,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 @contextmanager
-def get_db_session() -> Session:
+def get_db_session() -> Generator[Session, None, None]:
     """Provide a transactional scope around a series of operations."""
     session = SessionLocal()
     try:
