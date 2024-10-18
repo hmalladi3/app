@@ -1,57 +1,56 @@
 from typing import List, Dict, Any, Optional, Callable
 from uuid import UUID
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.ext.declarative import declarative_base
+from contextlib import contextmanager
+import os
+from dotenv import load_dotenv
 
-class Table:
-    def __init__(self, name: str):
-        self.name = name
-        self.data: List[Dict[str, Any]] = []
+# Load environment variables
+load_dotenv()
 
-    def insert(self, row: Dict[str, Any]) -> None:
-        self.data.append(row)
+# Database configuration
+DB_NAME = os.getenv("DB_NAME", "testdb")
+DB_USER = os.getenv("DB_USER", "postgres")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
 
-    def select(self, condition: Optional[Callable[[Dict[str, Any]], bool]] = None) -> List[Dict[str, Any]]:
-        if condition is None:
-            return self.data
-        return [row for row in self.data if condition(row)]
+# Create the database URL
+DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-    def update(self, condition: Callable[[Dict[str, Any]], bool], updates: Dict[str, Any]) -> None:
-        for row in self.data:
-            if condition(row):
-                row.update(updates)
+# Create the SQLAlchemy engine
+engine = create_engine(DATABASE_URL, echo=True)
 
-    def delete(self, condition: Callable[[Dict[str, Any]], bool]) -> None:
-        self.data = [row for row in self.data if not condition(row)]
+# Create a sessionmaker
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-class Database:
-    def __init__(self):
-        self.tables: Dict[str, Table] = {}
+# Create a base class for declarative models
+Base = declarative_base()
 
-    def create_table(self, name: str) -> Table:
-        if name not in self.tables:
-            self.tables[name] = Table(name)
-        return self.tables[name]
+@contextmanager
+def get_db_session() -> Session:
+    """Provide a transactional scope around a series of operations."""
+    session = SessionLocal()
+    try:
+        yield session
+        session.commit()
+    except:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
-    def get_table(self, name: str) -> Table:
-        return self.tables[name]
+def init_db():
+    """Initialize the database."""
+    Base.metadata.create_all(bind=engine)
 
-# Create a global database instance
-db = Database()
+def drop_db():
+    """Drop all tables in the database."""
+    Base.metadata.drop_all(bind=engine)
 
-# Helper functions for common operations
-
-def insert(table_name: str, row: Dict[str, Any]) -> None:
-    db.get_table(table_name).insert(row)
-
-def select(table_name: str, condition: Optional[Callable[[Dict[str, Any]], bool]] = None) -> List[Dict[str, Any]]:
-    return db.get_table(table_name).select(condition)
-
-def update(table_name: str, condition: Callable[[Dict[str, Any]], bool], updates: Dict[str, Any]) -> None:
-    db.get_table(table_name).update(condition, updates)
-
-def delete(table_name: str, condition: Callable[[Dict[str, Any]], bool]) -> None:
-    db.get_table(table_name).delete(condition)
-
-# Example usage:
-# db.create_table('items')
-# insert('items', {'id': uuid4(), 'name': 'Item 1', 'description': 'Description 1'})
-# items = select('items', lambda row: row['name'] == 'Item 1')
+if __name__ == "__main__":
+    print("Initializing the database...")
+    init_db()
+    print("Database initialized.")
