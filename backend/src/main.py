@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from uuid import UUID, uuid4
 
-from db import db, add_column
+from db import db
 from account import Account, Service, Review
 
 from math import radians, sin, cos, sqrt, atan2
