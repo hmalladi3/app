@@ -1,8 +1,7 @@
 from typing import List, Dict, Any, Optional, Callable, Generator
 from uuid import UUID
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session, declarative_base
 from contextlib import contextmanager
 import os
 from dotenv import load_dotenv
