@@ -15,7 +15,7 @@ class Account(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    hashed_password = Column(String(128), nullable=False)
     created_at = Column(DateTime, default=datetime.now(UTC))
     updated_at = Column(DateTime, default=datetime.now(UTC), onupdate=datetime.now(UTC))
     location = Column(ARRAY(Float), nullable=True)
@@ -68,4 +68,3 @@ class Hashtag(Base):
 
     # Relationships
     accounts = relationship("Account", secondary=account_hashtags, back_populates="hashtags")
-
