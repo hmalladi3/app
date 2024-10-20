@@ -3,18 +3,16 @@ DATABASE
 - services table
 - reviews table
 - media folder
+- hashtags table
 
 FEATURES TODO
-- add hashtags feature (matrix of hashtags and accounts as db table)
 - verify acct
 - flag user
 - recurring payments
 
 NOTES
-- persistent media storage
-- non persistent everything else
-- password and location is stored in plaintext
-- api calls directly from frontend to database, no intermediary
+- postgres db
+- media folder
 
 -> HASHTAGS
 - list of hashtags for each account

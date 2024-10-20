@@ -1,5 +1,5 @@
 from db import get_db_session
-from models import Service, Account, Review, Hashtag
+from models import Account
 from sqlalchemy.exc import IntegrityError
 from argon2 import PasswordHasher, exceptions
 
@@ -104,4 +104,3 @@ class AccountService:
             return True
         except exceptions.VerifyMismatchError:
             return False
-
