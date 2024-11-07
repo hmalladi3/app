@@ -1,6 +1,14 @@
+import sys
+from pathlib import Path
+
+# Add the project root directory to sys.path
+project_root = Path(__file__).resolve().parents[1]  # This should be the 'backend' directory
+sys.path.append(str(project_root))
+
+# Now use absolute imports
+from src.db import Base
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Table, Float, Boolean, ARRAY
 from sqlalchemy.orm import relationship
-from db import Base
 from datetime import datetime, UTC
 
 # Association table for the many-to-many relationship between Accounts and Hashtags
@@ -74,7 +82,7 @@ class Hashtag(Base):
 
 if __name__ == "__main__":
     import unittest
-    from db import get_db_session, init_db, drop_db
+    from src.db import get_db_session, init_db, drop_db
 
     class TestModels(unittest.TestCase):
         @classmethod
