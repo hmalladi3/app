@@ -8,6 +8,7 @@ DATABASE
 FEATURES TODO
 - verify acct
 - flag user
+- payment system
 - recurring payments
 
 NOTES
