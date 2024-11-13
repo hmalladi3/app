@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from sqlalchemy import text
 
 project_root = Path(__file__).resolve().parents[2]
 sys.path.append(str(project_root))
@@ -173,11 +174,16 @@ if __name__ == "__main__":
             drop_db()
 
         def setUp(self):
+            """Clear all test data before each test"""
             with get_db_session() as session:
+                # First clear the association table using proper text() wrapper
+                session.execute(text('DELETE FROM account_hashtags'))
+                # Then clear the main tables
                 session.query(Hashtag).delete()
                 session.query(Account).delete()
                 session.commit()
 
+            # Create test account after cleanup
             self.test_account = self.account_service.create_account(
                 username="testuser",
                 email="test@example.com",
