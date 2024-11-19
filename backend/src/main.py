@@ -39,13 +39,21 @@ class ReviewCreate(BaseModel):
 @app.post("/api/accounts")
 async def create_account(account: AccountCreate):
     try:
-        return account_service.create_account(
+        result = account_service.create_account(
             username=account.username,
             email=account.email,
             password=account.password
         )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        return result
+    except Exception as e:
+        # Add detailed error logging
+        import traceback
+        print(f"Error creating account: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
 
 @app.post("/api/login")
 async def login(username: str = Body(...), password: str = Body(...)):
@@ -254,6 +262,56 @@ async def advanced_search(
         )
     
     return services
+
+# Add these new endpoints:
+
+# Delete Account
+@app.delete("/api/accounts/{account_id}")
+async def delete_account(account_id: int = Path(..., description="ID of the account to delete")):
+    """
+    Delete an account and all associated services, reviews, and hashtags
+    """
+    try:
+        result = account_service.delete_account(account_id)
+        if result:
+            return {"message": f"Account {account_id} successfully deleted"}
+        raise HTTPException(status_code=404, detail="Account not found")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+# Delete Service
+@app.delete("/api/services/{service_id}")
+async def delete_service(
+    service_id: int = Path(..., description="ID of the service to delete"),
+    account_id: int = Query(..., description="ID of the account that owns the service")
+):
+    """
+    Delete a service and its associated reviews
+    """
+    try:
+        result = service_service.delete_service(service_id, account_id)
+        if result:
+            return {"message": f"Service {service_id} successfully deleted"}
+        raise HTTPException(status_code=404, detail="Service not found")
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+# Delete Review
+@app.delete("/api/reviews/{review_id}")
+async def delete_review(
+    review_id: int = Path(..., description="ID of the review to delete"),
+    client_id: int = Query(..., description="ID of the client who wrote the review")
+):
+    """
+    Delete a review (only by the client who created it)
+    """
+    try:
+        result = review_service.delete_review(review_id, client_id)
+        if result:
+            return {"message": f"Review {review_id} successfully deleted"}
+        raise HTTPException(status_code=404, detail="Review not found")
+    except ValueError as e:
+        raise HTTPException(status_code=403, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
