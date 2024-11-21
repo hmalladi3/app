@@ -166,14 +166,32 @@ class ReviewService:
                 session.rollback()
                 raise ValueError("An error occurred while updating the review")
 
-    def delete_review(self, review_id: int):
+    def delete_review(self, review_id: int, client_id: int):
+        """
+        Delete a review if it belongs to the client
+        
+        Args:
+            review_id: ID of the review to delete
+            client_id: ID of the client attempting to delete
+            
+        Returns:
+            bool: True if deleted, False if not found
+            
+        Raises:
+            ValueError: If client is not authorized to delete this review
+        """
         with get_db_session() as session:
             review = session.get(Review, review_id)
-            if review:
-                session.delete(review)
-                session.commit()
-                return True
-            return False
+            if not review:
+                return False
+            
+            # Verify the client owns this review
+            if review.client_id != client_id:
+                raise ValueError("You can only delete your own reviews")
+            
+            session.delete(review)
+            session.commit()
+            return True
 
     def get_average_rating(self, service_id: int = None, account_id: int = None):
         """Get the average rating for a service or account"""
@@ -265,7 +283,7 @@ if __name__ == "__main__":
 
         def test_delete_review(self):
             review = self.review_service.create_review(**self.test_review_data)
-            result = self.review_service.delete_review(review['id'])
+            result = self.review_service.delete_review(review['id'], self.client['id'])
             self.assertTrue(result)
             deleted = self.review_service.get_review_by_id(review['id'])
             self.assertIsNone(deleted)

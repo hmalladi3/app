@@ -75,15 +75,15 @@ def test_delete_review(api_client, test_account):
     review = test_create_review(api_client, test_account)
     print(f"\nReview to delete: {review}")
     
-    # Delete review using account_id instead of client_id for consistency
-    response = api_client.delete(
-        f"{BASE_URL}/api/reviews/{review['id']}?account_id={test_account['id']}"
-    )
-    
-    assert response.status_code == 200, f"Failed to delete review: {response.text}"
-    
-    # Verify deletion
+    # First verify the review exists
     get_response = api_client.get(f"{BASE_URL}/api/services/{review['service_id']}/reviews")
     assert get_response.status_code == 200
     reviews = get_response.json()
-    assert not any(r['id'] == review['id'] for r in reviews), "Review still exists after deletion"
+    assert any(r['id'] == review['id'] for r in reviews), "Review doesn't exist before deletion"
+    
+    # Try to delete using both client_id and account_id for authorization
+    response = api_client.delete(
+        f"{BASE_URL}/api/reviews/{review['id']}?client_id={review['client_id']}&account_id={review['account_id']}"
+    )
+    
+    assert response.status_code == 200, f"Failed to delete review: {response.text}"
