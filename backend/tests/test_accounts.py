@@ -24,7 +24,7 @@ def test_create_account(api_client):
 def test_login(api_client, test_account):
     """Test login functionality"""
     data = {
-        "username": "testuser",
+        "username": test_account["username"],
         "password": "testpass123"
     }
     

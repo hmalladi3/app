@@ -1,4 +1,5 @@
 import pytest
+from tests.conftest import BASE_URL
 
 def test_create_service(api_client, test_account):
     """Test service creation"""
@@ -25,12 +26,13 @@ def test_search_services(api_client, test_account):
     # Create a test service first
     service = test_create_service(api_client, test_account)
     
-    # Search for it
+    # Search for it using query parameter instead of keyword
     response = api_client.get(
-        f"{BASE_URL}/api/services/search",
-        params={"keyword": "Web Development"}
+        f"{BASE_URL}/api/search",  # Updated endpoint
+        params={"query": "Web Development"}  # Changed from keyword to query
     )
     assert response.status_code == 200
     results = response.json()
-    assert len(results) > 0
-    assert any(s["id"] == service["id"] for s in results)
+    assert "services" in results  # Check for services key in response
+    assert len(results["services"]) > 0
+    assert any(s["id"] == service["id"] for s in results["services"])

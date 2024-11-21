@@ -1,18 +1,18 @@
 import pytest
-from .conftest import BASE_URL
+from tests.conftest import BASE_URL
 
-def test_add_hashtags(api_client, test_account, base_url):
+def test_add_hashtags(api_client, test_account):
     """Test adding hashtags to an account"""
     tags = ["developer", "webdesign"]
     
     response = api_client.post(
-        f"{base_url}/api/accounts/{test_account['id']}/hashtags", 
+        f"{BASE_URL}/api/accounts/{test_account['id']}/hashtags", 
         json=tags
     )
     assert response.status_code == 200
     
     # Verify hashtags were added
-    response = api_client.get(f"{base_url}/api/accounts/{test_account['id']}/hashtags")
+    response = api_client.get(f"{BASE_URL}/api/accounts/{test_account['id']}/hashtags")
     assert response.status_code == 200
     account_tags = response.json()
     assert len(account_tags) == len(tags)

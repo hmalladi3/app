@@ -4,9 +4,8 @@ from typing import Generator, Dict
 from src.db import engine, Base, SessionLocal
 from src.models import Account, Service, Review, Hashtag  # Import all models
 
-@pytest.fixture(scope="session")
-def base_url():
-    return "http://localhost:8000"
+# Define as a regular constant
+BASE_URL = "http://localhost:8000"
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
@@ -38,7 +37,7 @@ def api_client():
     return session
 
 @pytest.fixture
-def test_account(api_client, base_url) -> Generator[Dict, None, None]:
+def test_account(api_client) -> Generator[Dict, None, None]:
     """Creates a test account and cleans it up after"""
     # Generate unique username
     import uuid
@@ -49,7 +48,7 @@ def test_account(api_client, base_url) -> Generator[Dict, None, None]:
         "password": "testpass123"
     }
     
-    response = api_client.post(f"{base_url}/api/accounts", json=account_data)
+    response = api_client.post(f"{BASE_URL}/api/accounts", json=account_data)
     
     if response.status_code != 200:
         print(f"\nResponse Status: {response.status_code}")
@@ -60,7 +59,7 @@ def test_account(api_client, base_url) -> Generator[Dict, None, None]:
     yield account
     
     try:
-        api_client.delete(f"{base_url}/api/accounts/{account['id']}")
+        api_client.delete(f"{BASE_URL}/api/accounts/{account['id']}")
     except Exception as e:
         print(f"Error cleaning up test account: {str(e)}")
 
@@ -73,14 +72,14 @@ def test_service(api_client, test_account) -> Generator[Dict, None, None]:
         "price": 9999
     }
     response = api_client.post(
-        f"{base_url}/api/services?account_id={test_account['id']}", 
+        f"{BASE_URL}/api/services?account_id={test_account['id']}", 
         json=service_data
     )
     service = response.json()
     yield service
     try:
         api_client.delete(
-            f"{base_url}/api/services/{service['id']}?account_id={test_account['id']}"
+            f"{BASE_URL}/api/services/{service['id']}?account_id={test_account['id']}"
         )
     except:
         pass
@@ -91,17 +90,22 @@ def test_review(api_client, test_service, test_account) -> Generator[Dict, None,
     review_data = {
         "rating": 5,
         "title": "Great service!",
-        "body": "Really enjoyed working with this provider"
+        "body": "Really enjoyed working with this provider",
+        "service_id": test_service["id"]
     }
     response = api_client.post(
-        f"{base_url}/api/services/{test_service['id']}/reviews?client_id={test_account['id']}", 
+        f"{BASE_URL}/api/services/{test_service['id']}/reviews?client_id={test_account['id']}",
         json=review_data
     )
+    if response.status_code != 200:
+        raise Exception(f"Failed to create test review: {response.text}")
+        
     review = response.json()
     yield review
+    
     try:
         api_client.delete(
-            f"{base_url}/api/reviews/{review['id']}?client_id={test_account['id']}"
+            f"{BASE_URL}/api/reviews/{review['id']}?client_id={test_account['id']}"
         )
-    except:
-        pass
+    except Exception as e:
+        print(f"Error cleaning up test review: {str(e)}")

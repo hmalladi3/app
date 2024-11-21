@@ -1,4 +1,5 @@
 import pytest
+from tests.conftest import BASE_URL
 
 def test_basic_search(api_client, test_account, test_service):
     """Test basic search functionality"""
