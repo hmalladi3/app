@@ -7,22 +7,15 @@ from src.services.hashtag import HashtagService
 from pydantic import BaseModel, EmailStr, conint, Field
 from src.db import init_db, get_db_session
 import logging
+from contextlib import asynccontextmanager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
-
-# Initialize services
-account_service = AccountService()
-service_service = ServiceService()
-review_service = ReviewService()
-hashtag_service = HashtagService()
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize database on application startup"""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifecycle event handler"""
     logger.info("Initializing database...")
     try:
         init_db()  # Create tables if they don't exist
@@ -30,6 +23,15 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Database initialization failed: {str(e)}")
         raise
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
+# Initialize services
+account_service = AccountService()
+service_service = ServiceService()
+review_service = ReviewService()
+hashtag_service = HashtagService()
 
 # Pydantic models for request validation
 class AccountCreate(BaseModel):
