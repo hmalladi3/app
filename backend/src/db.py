@@ -56,7 +56,18 @@ def get_db_session() -> Generator[Session, None, None]:
 
 def init_db():
     """Initialize the database."""
-    Base.metadata.create_all(bind=engine)
+    try:
+        logger.info("Creating database tables...")
+        Base.metadata.create_all(bind=engine)
+        
+        # Test connection
+        with get_db_session() as session:
+            session.execute(text("SELECT 1"))
+            logger.info("Database connection successful")
+            
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
+        raise
 
 def drop_db():
     """Drop all tables in the database."""

@@ -5,6 +5,12 @@ from src.services.service import ServiceService
 from src.services.review import ReviewService
 from src.services.hashtag import HashtagService
 from pydantic import BaseModel, EmailStr, conint, Field
+from src.db import init_db, get_db_session
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -13,6 +19,17 @@ account_service = AccountService()
 service_service = ServiceService()
 review_service = ReviewService()
 hashtag_service = HashtagService()
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database on application startup"""
+    logger.info("Initializing database...")
+    try:
+        init_db()  # Create tables if they don't exist
+        logger.info("Database initialization complete")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
+        raise
 
 # Pydantic models for request validation
 class AccountCreate(BaseModel):
