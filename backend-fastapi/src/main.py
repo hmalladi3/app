@@ -8,6 +8,7 @@ from pydantic import BaseModel, EmailStr, conint, Field
 from src.db import init_db, get_db_session
 import logging
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,6 +27,15 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8082", "exp://192.168.6.77:8082"],  # Only allow our frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Initialize services
 account_service = AccountService()
@@ -281,8 +291,6 @@ async def advanced_search(
         )
     
     return services
-
-# Add these new endpoints:
 
 # Delete Account
 @app.delete("/api/accounts/{account_id}")
